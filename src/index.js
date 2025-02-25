@@ -35,9 +35,6 @@ client.on('messageCreate', (message) => {
     if (content === 'hello blank') {
         message.reply(`hello <@${message.author.id}>, how can I help you?`);
     }
-    // if (message.mentions.has("837153165974437898")) {
-    //     message.reply("Master is busy right now. What do you need?");
-    // }
 });
 
 client.on('guildMemberAdd', async (member) => {
