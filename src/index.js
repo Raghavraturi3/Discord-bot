@@ -36,27 +36,30 @@ client.on('messageCreate', (message) => {
     const content = message.content.toLowerCase();
 
     if (content === 'dead chat') {
-        message.reply('Bro, your personality is the only thing deader than this chat');
+        message.reply('updating');
+    }
+    if (message.mentions.has("837153165974437898")) {
+        message.channel.send("busy");
     }
     if (content === 'hello blank') {
-        message.reply(`hello <@${message.author.id}>, how can I help you?`);
+        message.reply(`updating`);
     }
-    if (content === 'no fight') {
-        const embed = new EmbedBuilder()
-            .setColor('Random')
-            .setTitle("Boss")
-            .setDescription("Don't Fight (I'm reading all of your chats)")
-            .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-            .addFields({ 
-                name: 'Testing Field',
-                value: 'some Random value',
-                inline: true,
-            })
-            .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-            .setTimestamp();
+    // if (content === 'no fight') {
+    //     const embed = new EmbedBuilder()
+    //         .setColor('Random')
+    //         .setTitle("Boss")
+    //         .setDescription("Don't Fight (I'm reading all of your chats)")
+    //         .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
+    //         .addFields({ 
+    //             name: 'Testing Field',
+    //             value: 'some Random value',
+    //             inline: true,
+    //         })
+    //         .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
+    //         .setTimestamp();
 
-        message.channel.send({ embeds: [embed] });
-    }
+    //     message.channel.send({ embeds: [embed] });
+    // }
 });
 
 client.on('guildMemberAdd', async (member) => {
@@ -67,24 +70,24 @@ client.on('guildMemberAdd', async (member) => {
     channel.send(`Welcome <@${member.id}> to ${member.guild.name}! 🎉`);
 });
 
-client.on('interactionCreate', (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+// client.on('interactionCreate', (interaction) => {
+//     if (!interaction.isChatInputCommand()) return;
 
-    if (interaction.commandName === 'embed') {
-        const embed = new EmbedBuilder()
-        .setColor('Random')
-        .setTitle("Boss")
-        .setDescription("Don't Fight")
-        .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-        .addFields({ name: 'Testing Field',
-            value: 'some Random value',
-            inline: true,
-         })
-         .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-         .setTimestamp();
+//     if (interaction.commandName === 'embed') {
+//         const embed = new EmbedBuilder()
+//         .setColor('Random')
+//         .setTitle("Boss")
+//         .setDescription("Don't Fight")
+//         .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
+//         .addFields({ name: 'Testing Field',
+//             value: 'some Random value',
+//             inline: true,
+//          })
+//          .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
+//          .setTimestamp();
 
-        interaction.reply({ embeds: [embed] });
-    }
-})
+//         interaction.reply({ embeds: [embed] });
+//     }
+// })
 
 client.login(process.env.TOKEN);
