@@ -1,6 +1,9 @@
 require('dotenv').config();
 const { Client, IntentsBitField, EmbedBuilder } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
+// Create the client object
 const client = new Client({
     intents: [
         IntentsBitField.Flags.Guilds,
@@ -10,15 +13,74 @@ const client = new Client({
     ],
 });
 
-let lastDeletedMessage = {}; // Store last deleted messages per channel
+// Path to the file where deleted messages will be stored
+const deletedFilePath = path.join(__dirname, 'deleted.txt');
 
+// Stores last deleted messages per channel
+let lastDeletedMessage = {};
+// Stores last edited messages per channel
+let lastEditedMessage = {};
+
+// Event listener for when the bot is ready
 client.on('ready', () => {
     console.log('The bot is ready.');
+
+    // Delete the existing deleted.txt file when the bot starts, and create a fresh one
+    fs.unlink(deletedFilePath, (err) => {
+        if (err && err.code !== 'ENOENT') {
+            console.log('Error deleting old file:', err);
+        }
+        
+        // Log the startup time to the deleted.txt file
+        fs.appendFile(deletedFilePath, `--- Deleted and Edited Messages (Bot started at ${new Date().toISOString()}) ---\n`, (err) => {
+            if (err) throw err;
+        });
+    });
 });
 
+// Function to get the current time in a readable format
+function getCurrentTime() {
+    const now = new Date();
+    return now.toLocaleString(); // Returns the date and time in a readable format
+}
+
+// Event listener for message deletions
+client.on('messageDelete', async (message) => {
+    if (!message.partial) {
+        lastDeletedMessage[message.channel.id] = {
+            content: message.content || "*[Message had no text]*",
+            authorName: message.member?.nickname || message.author.username,
+        };
+
+        // Write the deleted message details into the file with timestamp
+        const logMessage = `Deleted Message\n${lastDeletedMessage[message.channel.id].authorName}: ${lastDeletedMessage[message.channel.id].content}\nTime: ${getCurrentTime()}\n\n`;
+        fs.appendFile(deletedFilePath, logMessage, (err) => {
+            if (err) throw err;
+        });
+    }
+});
+
+// Event listener for message edits
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+    if (!oldMessage.partial && !newMessage.author.bot) {
+        lastEditedMessage[newMessage.channel.id] = {
+            oldContent: oldMessage.content || "*[Message had no text before edit]*",
+            authorName: newMessage.member?.nickname || newMessage.author.username,
+        };
+
+        // Write the edited message details into the file with timestamp
+        const logMessage = `Edited Message\n${lastEditedMessage[newMessage.channel.id].authorName}: ${lastEditedMessage[newMessage.channel.id].oldContent}\nTime: ${getCurrentTime()}\n\n`;
+        fs.appendFile(deletedFilePath, logMessage, (err) => {
+            if (err) throw err;
+        });
+    }
+});
+
+// Event listener for interaction commands
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 
+    // Handle commands here (e.g., /best, /embed, /snip)
     if (interaction.commandName === 'best') {
         const first = interaction.options.getString('first');
         const second = interaction.options.getString('second');
@@ -30,53 +92,48 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.commandName === 'snip') {
-        const lastMessage = lastDeletedMessage[interaction.channelId];
-        if (lastMessage) {
-            await interaction.reply(`**${lastMessage.author}**: ${lastMessage.content}`);
-        } else {
-            await interaction.reply('No recent deleted messages found.');
-        }
-    }
-});
+        const lastDel = lastDeletedMessage[interaction.channelId];
+        const lastEdit = lastEditedMessage[interaction.channelId];
 
-client.on('messageCreate', (message) => {
-    if (message.author.bot) return;
-
-    const content = message.content.toLowerCase();
-
-    if (content === 'dead chat') {
-        message.reply('updating');
-    }
-    if (content === 'hello blank') {
-        message.reply(`updating`);
-    }
-    if (content === 'no fight') {
         const embed = new EmbedBuilder()
             .setColor('Random')
-            .setTitle("Boss")
-            .setDescription("Don't Fight (I'm reading all of your chats)")
-            .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-            .addFields({ 
-                name: 'Testing Field',
-                value: 'some Random value',
-                inline: true,
-            })
-            .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
+            .setTitle("Snip")
+            .setDescription("Here's the last deleted and edited message in this channel:")
             .setTimestamp();
 
-        message.channel.send({ embeds: [embed] });
+        if (lastDel) {
+            embed.addFields({
+                name: '🗑️ Last Deleted Message',
+                value: `**${lastDel.authorName}**: ${lastDel.content}`,
+                inline: false,
+            });
+        } else {
+            embed.addFields({
+                name: '🗑️ Last Deleted Message',
+                value: '*No recent deleted messages found.*',
+                inline: false,
+            });
+        }
+
+        if (lastEdit) {
+            embed.addFields({
+                name: '✏️ Last Edited Message',
+                value: `**${lastEdit.authorName}**: ${lastEdit.oldContent}`,
+                inline: false,
+            });
+        } else {
+            embed.addFields({
+                name: '✏️ Last Edited Message',
+                value: '*No recent edited messages found.*',
+                inline: false,
+            });
+        }
+
+        await interaction.reply({ embeds: [embed] });
     }
 });
 
-client.on('messageDelete', (message) => {
-    if (!message.partial) {
-        lastDeletedMessage[message.channel.id] = {
-            content: message.content,
-            author: message.author.tag
-        };
-    }
-});
-
+// Event listener for guild member join
 client.on('guildMemberAdd', async (member) => {
     const channel = member.guild.systemChannel || member.guild.channels.cache.find(ch => ch.name.toLowerCase().includes('welcome'));
 
@@ -85,24 +142,5 @@ client.on('guildMemberAdd', async (member) => {
     channel.send(`Welcome <@${member.id}> to ${member.guild.name}! 🎉`);
 });
 
-client.on('interactionCreate', (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.commandName === 'embed') {
-        const embed = new EmbedBuilder()
-        .setColor('Random')
-        .setTitle("Boss")
-        .setDescription("Don't Fight")
-        .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-        .addFields({ name: 'Testing Field',
-            value: 'some Random value',
-            inline: true,
-         })
-         .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
-         .setTimestamp();
-
-        interaction.reply({ embeds: [embed] });
-    }
-});
-
+// Log in the bot using your token
 client.login(process.env.TOKEN);
