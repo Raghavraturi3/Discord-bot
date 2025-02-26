@@ -41,11 +41,11 @@ client.on('messageCreate', (message) => {
     if (content === 'hello blank') {
         message.reply(`hello <@${message.author.id}>, how can I help you?`);
     }
-    if (content === 'hello boss') {
+    if (content === 'no fight') {
         const embed = new EmbedBuilder()
             .setColor('Random')
             .setTitle("Boss")
-            .setDescription("Don't Fight")
+            .setDescription("Don't Fight (I'm reading all of your chats)")
             .setThumbnail('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
             .addFields({ 
                 name: 'Testing Field',
@@ -55,7 +55,7 @@ client.on('messageCreate', (message) => {
             .setImage('https://pbs.twimg.com/media/Fn5qjz9WQAAXUgE?format=jpg&name=small')
             .setTimestamp();
 
-        message.reply({ embeds: [embed] });
+        message.channel.send({ embeds: [embed] });
     }
 });
 
