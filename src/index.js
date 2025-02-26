@@ -10,6 +10,8 @@ const client = new Client({
     ],
 });
 
+let lastDeletedMessage = {}; // Store last deleted messages per channel
+
 client.on('ready', () => {
     console.log('The bot is ready.');
 });
@@ -26,21 +28,25 @@ client.on('interactionCreate', async (interaction) => {
     if (interaction.commandName.toLowerCase() === 'hey') {
         interaction.reply('hello');
     }
+
+    if (interaction.commandName === 'snip') {
+        const lastMessage = lastDeletedMessage[interaction.channelId];
+        if (lastMessage) {
+            await interaction.reply(`**${lastMessage.author}**: ${lastMessage.content}`);
+        } else {
+            await interaction.reply('No recent deleted messages found.');
+        }
+    }
 });
 
 client.on('messageCreate', (message) => {
-    if (message.author.bot) {
-        return;
-    }
+    if (message.author.bot) return;
 
     const content = message.content.toLowerCase();
 
     if (content === 'dead chat') {
         message.reply('updating');
     }
-    // if (message.mentions.has("837153165974437898")) {
-    //     message.channel.send("busy");
-    // }
     if (content === 'hello blank') {
         message.reply(`updating`);
     }
@@ -59,6 +65,15 @@ client.on('messageCreate', (message) => {
             .setTimestamp();
 
         message.channel.send({ embeds: [embed] });
+    }
+});
+
+client.on('messageDelete', (message) => {
+    if (!message.partial) {
+        lastDeletedMessage[message.channel.id] = {
+            content: message.content,
+            author: message.author.tag
+        };
     }
 });
 
@@ -88,6 +103,6 @@ client.on('interactionCreate', (interaction) => {
 
         interaction.reply({ embeds: [embed] });
     }
-})
+});
 
 client.login(process.env.TOKEN);

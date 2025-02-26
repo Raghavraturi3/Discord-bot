@@ -2,27 +2,31 @@ require('dotenv').config();
 const { REST, Routes, ApplicationCommandOptionType } = require('discord.js');
 
 const commands = [
-        {
-            name: 'best',
-            description: 'Tells who is the best',
-            options: [
-                {
-                    name: 'first',
-                    description: 'First person?',
-                    type: ApplicationCommandOptionType.String,
-                    required: true
-                },
-                {
-                    name: 'second',
-                    description: 'Second person?',
-                    type: ApplicationCommandOptionType.String,
-                    required: true
-                }
-            ]
-        },
+    {
+        name: 'best',
+        description: 'Tells who is the best',
+        options: [
+            {
+                name: 'first',
+                description: 'First person?',
+                type: ApplicationCommandOptionType.String,
+                required: true
+            },
+            {
+                name: 'second',
+                description: 'Second person?',
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
     {
         name: 'embed',
-        description: 'sends an embed!',
+        description: 'Sends an embed!',
+    },
+    {
+        name: 'snip',
+        description: 'Shows the last deleted message from this channel',
     },
 ];
 
