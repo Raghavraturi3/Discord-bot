@@ -30,6 +30,7 @@ client.on('ready', () => {
         if (err && err.code !== 'ENOENT') {
             console.log('Error deleting old file:', err);
         }
+    
         
         // Log the startup time to the deleted.txt file
         fs.appendFile(deletedFilePath, `--- Deleted and Edited Messages (Bot started at ${new Date().toISOString()}) ---\n`, (err) => {
@@ -91,16 +92,22 @@ client.on('interactionCreate', async (interaction) => {
         interaction.reply('hello');
     }
 
+    const ALLOWED_USER_ID = process.env.USER_ID; // Replace USER_ID with the actual Discord user ID
+
     if (interaction.commandName === 'snip') {
+        if (interaction.user.id !== ALLOWED_USER_ID) {
+            return interaction.reply("You don't have permission to use this command. Ask Blank00200 to use it.");
+        }
+    
         const lastDel = lastDeletedMessage[interaction.channelId];
         const lastEdit = lastEditedMessage[interaction.channelId];
-
+    
         const embed = new EmbedBuilder()
             .setColor('Random')
             .setTitle("Snip")
             .setDescription("Here's the last deleted and edited message in this channel:")
             .setTimestamp();
-
+    
         if (lastDel) {
             embed.addFields({
                 name: '🗑️ Last Deleted Message',
@@ -114,7 +121,7 @@ client.on('interactionCreate', async (interaction) => {
                 inline: false,
             });
         }
-
+    
         if (lastEdit) {
             embed.addFields({
                 name: '✏️ Last Edited Message',
@@ -128,9 +135,10 @@ client.on('interactionCreate', async (interaction) => {
                 inline: false,
             });
         }
-
+    
         await interaction.reply({ embeds: [embed] });
     }
+    
 });
 
 // Event listener for guild member join
