@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, IntentsBitField, EmbedBuilder } = require('discord.js');
+const { Client, IntentsBitField, EmbedBuilder, ActivityType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,14 +16,44 @@ const deletedFilePath = path.join(__dirname, 'deleted.txt');
 let lastDeletedMessage = {};
 let lastEditedMessage = {};
 
+
+let status = [
+    {
+        name: 'Help',
+        type: ActivityType.Streaming,
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    },
+    {
+        name: 'wait',
+        type: ActivityType.Watching,
+    },
+    {
+        name: 'WHAT!',
+        type: ActivityType.Listening,
+    },
+];
+
 client.on('ready', () => {
     console.log('The bot is ready.');
-    fs.unlink(deletedFilePath, (err) => {
-        if (err && err.code !== 'ENOENT') console.log('Error deleting old file:', err);
-        fs.appendFile(deletedFilePath, `--- Bot started at ${new Date().toISOString()} ---\n`, (err) => {
-            if (err) throw err;
+
+    setInterval(() => {
+        let random = Math.floor(Math.random() * status.length);
+        let currentStatus = status[random];
+
+        client.user.setActivity(currentStatus.name, {
+            type: currentStatus.type,
+            url: currentStatus.type === ActivityType.Streaming ? currentStatus.url : undefined,
         });
-    });
+
+        // Logging bot activity changes
+        fs.unlink(deletedFilePath, (err) => {
+            if (err && err.code !== 'ENOENT') console.log('Error deleting old file:', err);
+            fs.appendFile(deletedFilePath, `--- Bot updated status at ${new Date().toISOString()} ---\n`, (err) => {
+                if (err) console.log('Error writing to file:', err);
+            });
+        });
+
+    }, 10000);
 });
 
 function getCurrentTime() {
