@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); 
 const { REST, Routes, ApplicationCommandOptionType } = require('discord.js');
 
 const commands = [
@@ -22,25 +22,27 @@ const commands = [
     },
     {
         name: 'embed',
-        description: 'Sends an embed!',
+        description: 'Sends an embed message!',
     },
     {
         name: 'snip',
         description: 'Shows the last deleted message from this channel',
-    },
+    }
 ];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
     try {
-        console.log('Registering slash commands...');
+        console.log('⏳ Registering slash commands...');
+
         await rest.put(
-            Routes.applicationCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+            Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
             { body: commands }
         );
-        console.log('Registered commands successfully');
+
+        console.log('✅ Slash commands registered successfully!');
     } catch (error) {
-        console.log(`There was an error: ${error}`);
+        console.error('❌ Failed to register commands:', error);
     }
 })();
