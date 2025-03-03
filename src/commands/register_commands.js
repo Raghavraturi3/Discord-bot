@@ -28,31 +28,60 @@ const commands = [
         name: 'snip',
         description: 'Shows the last deleted message from this channel',
     },
+    {
+        name: 'ban',
+        description: 'Bans a user from the server',
+        options: [
+            {
+                name: 'target',
+                description: 'User to ban',
+                type: ApplicationCommandOptionType.User,
+                required: true,
+            },
+            {
+                name: 'reason',
+                description: 'Reason for banning the user',
+                type: ApplicationCommandOptionType.String,
+                required: false,
+            },
+        ],
+    },
+    {
+        name: 'unban',
+        description: 'Unbans a user from the server',
+        options: [
+          {
+            name: 'userid',
+            description: 'User ID of the user to unban',
+            type: ApplicationCommandOptionType.String,
+            required: true,
+          },
+          {
+            name: 'reason',
+            description: 'Reason for unbanning the user',
+            type: ApplicationCommandOptionType.String,
+            required: false,
+          },
+        ],
+      },
 ];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
     try {
-        console.log('⏳ Removing old global commands...');
-        // This line removes all global commands
-        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: [] });
-
-        console.log('✅ Global commands removed.');
-
         console.log('⏳ Removing old guild commands...');
-        // Remove guild-specific commands before re-registering
-        await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: [] });
-
+        await rest.put(
+            Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+            { body: [] }
+        );
         console.log('✅ Old guild commands removed.');
 
-        console.log('⏳ Registering slash commands...');
-        // Registering commands only for the specific guild
+        console.log('⏳ Registering new slash commands...');
         await rest.put(
             Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
             { body: commands }
         );
-
         console.log('✅ Slash commands registered successfully!');
     } catch (error) {
         console.error('❌ Failed to register commands:', error);

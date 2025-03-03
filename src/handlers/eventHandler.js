@@ -9,7 +9,11 @@ module.exports = (client) => {
 
         for (const file of eventFiles) {
             const event = require(`../events/${folder}/${file}`);
-            client.on(event.name, (...args) => event.execute(...args, client));
+            if (event.name && typeof event.execute === 'function') {
+                client.on(event.name, (...args) => event.execute(...args, client));
+            } else {
+                console.error(`❌ Skipping invalid event file: ${file}`);
+            }
         }
     }
 };

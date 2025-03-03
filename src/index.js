@@ -12,10 +12,10 @@ const client = new Client({
     ],
 });
 
-// Collection for commands
+// Initialize the commands collection
 client.commands = new Collection();
 
-// Load commands dynamically
+// Load commands from the "commands" folder
 const commandsPath = path.join(__dirname, 'commands');
 fs.readdirSync(commandsPath).forEach(folder => {
     const folderPath = path.join(commandsPath, folder);
@@ -23,7 +23,11 @@ fs.readdirSync(commandsPath).forEach(folder => {
         fs.readdirSync(folderPath).forEach(file => {
             if (file.endsWith('.js')) {
                 const command = require(path.join(folderPath, file));
-                client.commands.set(command.name, command);
+                if (command.data && command.execute) {
+                    client.commands.set(command.data.name, command);
+                } else {
+                    console.error(`❌ Command in ${file} is missing data or execute function.`);
+                }
             }
         });
     }
@@ -31,7 +35,7 @@ fs.readdirSync(commandsPath).forEach(folder => {
 
 console.log(`✅ Loaded ${client.commands.size} commands.`);
 
-// Load event handlers dynamically
+// Load event handlers from the "events" folder
 const eventsPath = path.join(__dirname, 'events');
 fs.readdirSync(eventsPath).forEach(folder => {
     const folderPath = path.join(eventsPath, folder);
@@ -39,11 +43,10 @@ fs.readdirSync(eventsPath).forEach(folder => {
         fs.readdirSync(folderPath).forEach(file => {
             if (file.endsWith('.js')) {
                 const event = require(path.join(folderPath, file));
-                const eventName = file.split('.')[0];
-                if (typeof event === 'function') {
-                    client.on(eventName, event.bind(null, client));
+                if (event.name && typeof event.execute === 'function') {
+                    client.on(event.name, (...args) => event.execute(...args, client));
                 } else {
-                    console.error(`❌ ${eventName} is not a function`);
+                    console.error(`❌ Invalid event file: ${file}`);
                 }
             }
         });
@@ -52,22 +55,6 @@ fs.readdirSync(eventsPath).forEach(folder => {
 
 console.log('✅ Event handlers loaded.');
 
-// Slash command interaction handler
-client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isCommand()) return;
-
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
-
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error('❌ Error executing command:', error);
-        await interaction.reply({ content: 'An error occurred while executing this command.', ephemeral: true });
-    }
-});
-
-// Handle bot login
 client.once('ready', () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
 });

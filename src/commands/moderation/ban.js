@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
+require('dotenv').config();
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,44 +9,56 @@ module.exports = {
             option.setName('target')
                 .setDescription('User to ban')
                 .setRequired(true)
+        )
+        .addStringOption(option =>
+            option.setName('reason')
+                .setDescription('Reason for banning the user')
+                .setRequired(false)
         ),
     async execute(interaction) {
-        // Check if the member has 'BanMembers' permission
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
-            return interaction.reply({ content: 'You don’t have permission to ban users!', ephemeral: true });
+        // Defer reply to avoid timeouts (ephemeral so only you see errors)
+        await interaction.deferReply({ ephemeral: true });
+        
+        // Check if the command user has the "BanMembers" permission
+        if (!interaction.member.permissions.has('BanMembers')) {
+            return interaction.editReply({ content: '❌ You do not have permission to ban members.' });
         }
-
-        // Check if the bot has the 'BanMembers' permission
-        if (!interaction.guild.me.permissions.has(PermissionsBitField.Flags.BanMembers)) {
-            return interaction.reply({ content: 'I don’t have permission to ban users!', ephemeral: true });
+        
+        // Check if the bot itself has the "BanMembers" permission
+        if (!interaction.guild.members.me.permissions.has('BanMembers')) {
+            return interaction.editReply({ content: '❌ I do not have permission to ban members.' });
         }
-
-        const target = interaction.options.getUser('target');
-
-        // Check if the target is a bot
-        if (target.bot) {
-            return interaction.reply({ content: 'I cannot ban bots!', ephemeral: true });
-        }
+        
+        const targetUser = interaction.options.getUser('target');
+        const reason = interaction.options.getString('reason') || 'No reason provided';
 
         // Fetch the member object for the target user
-        const member = await interaction.guild.members.fetch(target.id);
-
-        // Check if the member exists in the guild
-        if (!member) {
-            return interaction.reply({ content: 'User not found in this server.', ephemeral: true });
+        const targetMember = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+        if (!targetMember) {
+            return interaction.editReply({ content: '❌ That user is not in this server.' });
         }
-
-        // Check if the member is bannable
-        if (!member.bannable) {
-            return interaction.reply({ content: 'I cannot ban this user due to role hierarchy or other restrictions.', ephemeral: true });
+        
+        // Prevent banning yourself
+        if (interaction.member.id === targetMember.id) {
+            return interaction.editReply({ content: '❌ You cannot ban yourself.' });
         }
-
+        
+        // Ensure the command user's highest role is higher than the target's highest role
+        if (interaction.member.roles.highest.comparePositionTo(targetMember.roles.highest) <= 0) {
+            return interaction.editReply({ content: '❌ You cannot ban this user because their role is equal or higher than yours.' });
+        }
+        
+        // Check if the target is bannable by the bot
+        if (!targetMember.bannable) {
+            return interaction.editReply({ content: '❌ I cannot ban this user due to role hierarchy or permission issues.' });
+        }
+        
         try {
-            await member.ban({ reason: 'Banned by command' });
-            await interaction.reply({ content: `${target.username} has been banned.` });
+            await targetMember.ban({ reason });
+            await interaction.editReply({ content: `✅ Successfully banned **${targetUser.tag}**\n**Reason:** ${reason}` });
         } catch (error) {
-            console.error(error);
-            await interaction.reply({ content: 'An error occurred while banning the user.', ephemeral: true });
+            console.error('Error banning user:', error);
+            await interaction.editReply({ content: '❌ An error occurred while trying to ban that user.' });
         }
     },
 };
