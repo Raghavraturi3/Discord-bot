@@ -50,20 +50,32 @@ const commands = [
         name: 'unban',
         description: 'Unbans a user from the server',
         options: [
-          {
-            name: 'userid',
-            description: 'User ID of the user to unban',
-            type: ApplicationCommandOptionType.String,
-            required: true,
-          },
-          {
-            name: 'reason',
-            description: 'Reason for unbanning the user',
-            type: ApplicationCommandOptionType.String,
-            required: false,
-          },
+            {
+                name: 'userid',
+                description: 'User ID of the user to unban',
+                type: ApplicationCommandOptionType.String,
+                required: true,
+            },
+            {
+                name: 'reason',
+                description: 'Reason for unbanning the user',
+                type: ApplicationCommandOptionType.String,
+                required: false,
+            },
         ],
-      }
+    },
+    {
+        name: 'echo',
+        description: 'Repeats your message',
+        options: [
+            {
+                name: 'message',
+                description: 'The message to repeat',
+                type: ApplicationCommandOptionType.String,
+                required: true,
+            },
+        ],
+    }
 ];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
