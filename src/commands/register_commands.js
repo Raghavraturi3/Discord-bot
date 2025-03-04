@@ -1,4 +1,4 @@
-const { REST, Routes, ApplicationCommandOptionType } = require('discord.js');
+const { REST, Routes, ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js');
 require('dotenv').config();
 
 const commands = [
@@ -45,6 +45,7 @@ const commands = [
                 required: false,
             },
         ],
+        default_member_permissions: Number(PermissionFlagsBits.BanMembers), // Fix: Convert BigInt to Number
     },
     {
         name: 'unban',
@@ -63,14 +64,40 @@ const commands = [
                 required: false,
             },
         ],
+        default_member_permissions: Number(PermissionFlagsBits.BanMembers), // Fix: Convert BigInt to Number
+    },
+    {
+        name: 'timeout',
+        description: 'Temporarily mutes a user',
+        options: [
+            {
+                name: 'target',
+                description: 'User to timeout',
+                type: ApplicationCommandOptionType.User,
+                required: true,
+            },
+            {
+                name: 'duration',
+                description: 'Duration in minutes',
+                type: ApplicationCommandOptionType.Integer,
+                required: true,
+            },
+            {
+                name: 'reason',
+                description: 'Reason for timeout',
+                type: ApplicationCommandOptionType.String,
+                required: false,
+            },
+        ],
+        default_member_permissions: Number(PermissionFlagsBits.ModerateMembers), // Fix: Convert BigInt to Number
     },
     {
         name: 'echo',
-        description: 'Repeats your message',
+        description: 'Echoes the message you type',
         options: [
             {
                 name: 'message',
-                description: 'The message to repeat',
+                description: 'The message to echo',
                 type: ApplicationCommandOptionType.String,
                 required: true,
             },
