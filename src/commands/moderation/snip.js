@@ -1,28 +1,18 @@
 const { SlashCommandBuilder } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-
-const logFilePath = path.join(__dirname, '../../deleted.txt');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('snip')
-        .setDescription('Shows the last deleted or edited message'),
+        .setDescription('Shows the last deleted and edited message from this channel'),
     async execute(interaction) {
-        if (interaction.user.id !== process.env.USER_ID) {
-            return interaction.reply({ content: '❌ You are not allowed to use this command.', ephemeral: true });
-        }
+        let deletedMessage = global.lastDeletedMessage
+            ? `**Last Deleted Message:**\n**${global.lastDeletedMessage.author.tag}**: ${global.lastDeletedMessage.content}`
+            : 'No deleted messages found.';
 
-        if (!fs.existsSync(logFilePath)) {
-            return interaction.reply({ content: 'No deleted or edited messages found.', ephemeral: true });
-        }
+        let editedMessage = global.lastEditedMessage
+            ? `**Last Edited Message:**\n**${global.lastEditedMessage.author}**: ${global.lastEditedMessage.oldContent} → ${global.lastEditedMessage.newContent}`
+            : 'No edited messages found.';
 
-        const logs = fs.readFileSync(logFilePath, 'utf8').trim().split('\n');
-        const lastDeleted = logs.reverse().find(line => line.startsWith('[DELETED]')) || 'No deleted messages found.';
-        const lastEdited = logs.reverse().find(line => line.startsWith('[EDITED]')) || 'No edited messages found.';
-
-        return interaction.reply({
-            content: `📜 **Last Deleted Message:**\n${lastDeleted}\n\n✏️ **Last Edited Message:**\n${lastEdited}`
-        });
-    }
+        await interaction.reply({ content: `${deletedMessage}\n\n${editedMessage}`, ephemeral: false });
+    },
 };
