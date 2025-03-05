@@ -55,6 +55,31 @@ fs.readdirSync(eventsPath).forEach(folder => {
 
 console.log('✅ Event handlers loaded.');
 
+// Snip message tracking (last deleted & edited messages)
+let lastDeletedMessage = null;
+let lastEditedMessage = null;
+
+// Track deleted messages
+client.on('messageDelete', (message) => {
+    if (!message.author.bot && message.content) {
+        lastDeletedMessage = { author: message.author.tag, content: message.content };
+    }
+});
+
+// Track edited messages
+client.on('messageUpdate', (oldMessage, newMessage) => {
+    if (!oldMessage.author.bot && oldMessage.content !== newMessage.content) {
+        lastEditedMessage = {
+            author: oldMessage.author.tag,
+            oldContent: oldMessage.content,
+            newContent: newMessage.content,
+        };
+    }
+});
+
+// Add snip data to client for access in commands
+client.snipData = { lastDeletedMessage, lastEditedMessage };
+
 client.once('ready', () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
 });
