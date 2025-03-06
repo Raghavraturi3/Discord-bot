@@ -1,7 +1,7 @@
 const { REST, Routes, ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js');
 require('dotenv').config();
 
-const commands = [
+const newCommands = [
     {
         name: 'best',
         description: 'Tells who is the best',
@@ -45,7 +45,7 @@ const commands = [
                 required: false,
             },
         ],
-        default_member_permissions: Number(PermissionFlagsBits.BanMembers), // Fix: Convert BigInt to Number
+        default_member_permissions: Number(PermissionFlagsBits.BanMembers),
     },
     {
         name: 'unban',
@@ -64,7 +64,7 @@ const commands = [
                 required: false,
             },
         ],
-        default_member_permissions: Number(PermissionFlagsBits.BanMembers), // Fix: Convert BigInt to Number
+        default_member_permissions: Number(PermissionFlagsBits.BanMembers),
     },
     {
         name: 'timeout',
@@ -89,7 +89,7 @@ const commands = [
                 required: false,
             },
         ],
-        default_member_permissions: Number(PermissionFlagsBits.ModerateMembers), // Fix: Convert BigInt to Number
+        default_member_permissions: Number(PermissionFlagsBits.ModerateMembers),
     },
     {
         name: 'echo',
@@ -109,17 +109,32 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
     try {
-        console.log('⏳ Removing old guild commands...');
-        await rest.put(
-            Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-            { body: [] }
-        );
-        console.log('✅ Old guild commands removed.');
+        console.log('⏳ Fetching current guild commands...');
 
-        console.log('⏳ Registering new slash commands...');
+        // Fetch current guild commands so we don't overwrite old ones
+        const currentCommands = await rest.get(
+            Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID)
+        );
+
+        console.log('✅ Fetched current guild commands.');
+
+        // Delete AI-related commands
+        const aiCommands = ['ai-command1', 'ai-command2']; // List the AI-related commands here
+        const commandsToDelete = currentCommands.filter(command => aiCommands.includes(command.name));
+
+        for (const command of commandsToDelete) {
+            console.log(`⏳ Deleting AI-related command: ${command.name}...`);
+            await rest.delete(
+                Routes.applicationGuildCommand(process.env.CLIENT_ID, process.env.GUILD_ID, command.id)
+            );
+            console.log(`✅ Deleted AI-related command: ${command.name}`);
+        }
+
+        // Register the new commands
+        console.log('⏳ Registering all slash commands...');
         await rest.put(
             Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-            { body: commands }
+            { body: newCommands }
         );
         console.log('✅ Slash commands registered successfully!');
     } catch (error) {

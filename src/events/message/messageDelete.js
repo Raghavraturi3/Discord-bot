@@ -9,14 +9,14 @@ module.exports = {
     async execute(message) {
         if (!message.content || message.author.bot) return;
 
-        const logMessage = `[DELETED] ${message.author.tag}: ${message.content}\n`;
-
-        // Store only if running with nodemon
-        if (process.env.npm_lifecycle_event === 'nodemon') {
-            fs.appendFileSync(logFilePath, logMessage);
-        }
+        const logMessage = `[${new Date().toLocaleString()}] [DELETED] ${message.author.tag}: "${message.content}"\n`;
+        fs.appendFileSync(logFilePath, logMessage);
 
         // Save the last deleted message in memory
-        global.lastDeletedMessage = message;
+        global.lastDeletedMessage = {
+            author: message.author.tag,
+            content: message.content,
+            timestamp: new Date().toLocaleString(),
+        };
     },
 };

@@ -55,30 +55,29 @@ fs.readdirSync(eventsPath).forEach(folder => {
 
 console.log('✅ Event handlers loaded.');
 
-// Snip message tracking (last deleted & edited messages)
-let lastDeletedMessage = null;
-let lastEditedMessage = null;
+// Log messages to files
+function logToFile(filename, content) {
+    const filePath = path.join(__dirname, filename); // FIXED PATH
+
+    // Ensure the file exists
+    fs.appendFile(filePath, content + '\n', (err) => {
+        if (err) console.error(`❌ Error writing to ${filename}:`, err);
+    });
+}
 
 // Track deleted messages
-client.on('messageDelete', (message) => {
-    if (!message.author.bot && message.content) {
-        lastDeletedMessage = { author: message.author.tag, content: message.content };
+client.on('messageDelete', async (message) => {
+    if (!message.author?.bot && message.content) {
+        const logEntry = `[${new Date().toLocaleString()}] ${message.author.tag}: ${message.content}`;
     }
 });
 
 // Track edited messages
-client.on('messageUpdate', (oldMessage, newMessage) => {
-    if (!oldMessage.author.bot && oldMessage.content !== newMessage.content) {
-        lastEditedMessage = {
-            author: oldMessage.author.tag,
-            oldContent: oldMessage.content,
-            newContent: newMessage.content,
-        };
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+    if (!oldMessage.author?.bot && oldMessage.content !== newMessage.content) {
+        const logEntry = `[${new Date().toLocaleString()}] ${oldMessage.author.tag}: "${oldMessage.content}" → "${newMessage.content}"`;
     }
 });
-
-// Add snip data to client for access in commands
-client.snipData = { lastDeletedMessage, lastEditedMessage };
 
 client.once('ready', () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
