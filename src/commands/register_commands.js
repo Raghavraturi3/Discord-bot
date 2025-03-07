@@ -102,7 +102,25 @@ const newCommands = [
                 required: true,
             },
         ],
-    }
+    },
+    {
+        name: 'echofile',
+        description: 'Echoes an attached file and optionally replies to a message',
+        options: [
+            {
+                name: 'file',
+                description: 'The file to send',
+                type: ApplicationCommandOptionType.Attachment,
+                required: true,
+            },
+            {
+                name: 'message_id',
+                description: 'The message ID to reply to (optional)',
+                type: ApplicationCommandOptionType.String,
+                required: false,
+            },
+        ],
+    },
 ];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
@@ -118,7 +136,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
         console.log('✅ Fetched current guild commands.');
 
-        // Delete AI-related commands
+        // Delete AI-related commands (if needed)
         const aiCommands = ['ai-command1', 'ai-command2']; // List the AI-related commands here
         const commandsToDelete = currentCommands.filter(command => aiCommands.includes(command.name));
 
