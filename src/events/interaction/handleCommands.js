@@ -7,8 +7,8 @@ module.exports = {
         if (!command) return;
 
         try {
-            // Defer reply to prevent timeout issues
-            await interaction.deferReply();
+            // Check if the command needs deferring (adjust per command)
+            if (command.defer) await interaction.deferReply();
 
             // Execute the command
             await command.execute(interaction);

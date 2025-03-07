@@ -14,11 +14,12 @@ module.exports = {
                 .setDescription('The message ID to reply to (optional)')
                 .setRequired(false)
         ),
-
+    
     async execute(interaction) {
         const file = interaction.options.getAttachment('file');
         const messageId = interaction.options.getString('message_id');
 
+        // Check if file exists
         if (!file) {
             return interaction.reply({ content: '❌ Please attach a file!', ephemeral: true });
         }
@@ -29,14 +30,21 @@ module.exports = {
         if (messageId) {
             try {
                 const targetMessage = await interaction.channel.messages.fetch(messageId);
+                
+                // Check if the interaction has already replied
+                if (interaction.deferred || interaction.replied) {
+                    await interaction.editReply({ content: '✅ File sent as a reply!', ephemeral: true });
+                } else {
+                    await interaction.reply({ content: '✅ File sent as a reply!', ephemeral: true });
+                }
+
                 await targetMessage.reply({ files: [attachment] });
-                return interaction.reply({ content: '✅ File sent as a reply!', ephemeral: true });
             } catch (error) {
                 return interaction.reply({ content: '❌ Invalid message ID or message not found.', ephemeral: true });
             }
+        } else {
+            // If no message ID, send the file normally
+            await interaction.reply({ files: [attachment] });
         }
-
-        // If no message ID, just send the file normally
-        await interaction.reply({ files: [attachment] });
     }
 };
