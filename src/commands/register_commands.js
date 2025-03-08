@@ -121,6 +121,18 @@ const newCommands = [
             },
         ],
     },
+    {
+        name: 'music',
+        description: 'Play music in a voice channel',
+        options: [
+            {
+                name: 'song',
+                description: 'The song name or URL to play',
+                type: ApplicationCommandOptionType.String,
+                required: true,
+            },
+        ],
+    }
 ];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
