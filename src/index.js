@@ -2,14 +2,23 @@ require('dotenv').config();
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { DisTube } = require('distube');
+const { SpotifyPlugin } = require('@distube/spotify');
 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildVoiceStates, // REQUIRED for voice channel access
         GatewayIntentBits.MessageContent,
     ],
+});
+
+// Initialize DisTube for music playback
+client.distube = new DisTube(client, {
+    emitNewSongOnly: true,
+    plugins: [new SpotifyPlugin()]
 });
 
 // Initialize the commands collection
@@ -78,6 +87,16 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
         const logEntry = `[${new Date().toLocaleString()}] ${oldMessage.author.tag}: "${oldMessage.content}" → "${newMessage.content}"`;
     }
 });
+
+// DisTube Events
+client.distube
+    .on('playSong', (queue, song) => {
+        queue.textChannel.send(`🎶 Now playing: **${song.name}**`);
+    })
+    .on('error', (channel, error) => {
+        console.error(`❌ DisTube Error: ${error}`);
+        channel.send('❌ An error occurred while trying to play music.');
+    });
 
 client.once('ready', () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
