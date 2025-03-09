@@ -46,19 +46,9 @@ console.log(`✅ Loaded ${client.commands.size} commands.`);
 
 // Load event handlers from the "events" folder
 const eventsPath = path.join(__dirname, 'events');
-fs.readdirSync(eventsPath).forEach(folder => {
-    const folderPath = path.join(eventsPath, folder);
-    if (fs.lstatSync(folderPath).isDirectory()) {
-        fs.readdirSync(folderPath).forEach(file => {
-            if (file.endsWith('.js')) {
-                const event = require(path.join(folderPath, file));
-                if (event.name && typeof event.execute === 'function') {
-                    client.on(event.name, (...args) => event.execute(...args, client));
-                } else {
-                    console.error(`❌ Invalid event file: ${file}`);
-                }
-            }
-        });
+fs.readdirSync(eventsPath).forEach(file => {
+    if (file.endsWith('.js')) {
+        require(path.join(eventsPath, file))(client);
     }
 });
 
@@ -66,9 +56,7 @@ console.log('✅ Event handlers loaded.');
 
 // Log messages to files
 function logToFile(filename, content) {
-    const filePath = path.join(__dirname, filename); // FIXED PATH
-
-    // Ensure the file exists
+    const filePath = path.join(__dirname, filename);
     fs.appendFile(filePath, content + '\n', (err) => {
         if (err) console.error(`❌ Error writing to ${filename}:`, err);
     });
