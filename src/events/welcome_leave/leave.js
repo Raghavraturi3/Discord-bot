@@ -1,18 +1,22 @@
 const { EmbedBuilder } = require('discord.js');
 
-module.exports = (client) => {
-    client.on('guildMemberRemove', async (member) => {
-        const channel = member.guild.systemChannel; // Change this if needed
-        if (!channel) return;
+module.exports = {
+    name: 'guildMemberRemove',
+    execute(member) {
+        const leaveChannelId = '1249435867001520198'; // 🔹 Set your Leave Channel ID here
 
-        const embed = new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle('😢 Goodbye!')
-            .setDescription(`**${member.user.tag}** has left **Endless Void**. We'll miss you! 💔`)
-            .setThumbnail('https://i.imgur.com/Fn4RjYw.png') // Change this URL for a custom thumbnail
-            .setFooter({ text: `We now have ${member.guild.memberCount} members.`, iconURL: member.user.displayAvatarURL() })
-            .setTimestamp();
+        const channel = member.guild.channels.cache.get(leaveChannelId);
+        if (!channel) return console.error('⚠️ Leave channel not found.');
 
-        channel.send({ embeds: [embed] });
-    });
+        const leaveEmbed = new EmbedBuilder()
+            .setColor('#ff0000') // Red color
+            .setTitle('👋 Member Left...')
+            .setDescription(`**${member.user.username}** has left **Endless Void**. 😢\nWe'll miss you!`)
+            .setThumbnail('https://example.com/leave-thumbnail.png') // 🔹 Set your thumbnail image
+            .setFooter({ text: `We now have ${member.guild.memberCount} members left.` })
+            .setTimestamp()
+            .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL({ dynamic: true }) });
+
+        channel.send({ embeds: [leaveEmbed] });
+    }
 };

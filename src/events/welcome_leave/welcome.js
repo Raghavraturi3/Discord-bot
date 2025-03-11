@@ -1,19 +1,23 @@
 const { EmbedBuilder } = require('discord.js');
 
-module.exports = (client) => {
-    client.on('guildMemberAdd', async (member) => {
-        const channel = member.guild.systemChannel; // Change this if needed
-        if (!channel) return;
+module.exports = {
+    name: 'guildMemberAdd',
+    execute(member) {
+        const welcomeChannelId = '1249435427077881906'; // 🔹 Set your Welcome Channel ID here
 
-        const embed = new EmbedBuilder()
-            .setColor('#00ff00')
+        const channel = member.guild.channels.cache.get(welcomeChannelId);
+        if (!channel) return console.error('⚠️ Welcome channel not found.');
+
+        const welcomeEmbed = new EmbedBuilder()
+            .setColor('#00ff00') // Green color
             .setTitle('🎉 Welcome to Endless Void!')
-            .setDescription(`Hey ${member}, welcome to **Endless Void**! 🎊\nHope you have a great time here!`)
-            .setThumbnail('https://i.imgur.com/Fn4RjYw.png') // Change this URL for a custom thumbnail
-            .setImage('https://i.imgur.com/zM1l4j5.gif') // Optional banner image
-            .setFooter({ text: `Member #${member.guild.memberCount}`, iconURL: member.user.displayAvatarURL() })
-            .setTimestamp();
+            .setDescription(`Hey <@${member.id}>, welcome to **Endless Void**! 🎊\nHope you have a great time here!`)
+            .setThumbnail('https://example.com/welcome-thumbnail.png') // 🔹 Set your thumbnail image
+            .setImage('https://example.com/welcome-banner.png') // 🔹 Optional banner image
+            .setFooter({ text: `We now have ${member.guild.memberCount} members!` })
+            .setTimestamp()
+            .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL({ dynamic: true }) });
 
-        channel.send({ embeds: [embed] });
-    });
+        channel.send({ embeds: [welcomeEmbed] });
+    }
 };
