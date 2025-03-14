@@ -10,7 +10,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildVoiceStates, // REQUIRED for voice channel access
+        GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.MessageContent,
     ],
 });
@@ -54,37 +54,20 @@ fs.readdirSync(eventsPath).forEach(file => {
 
 console.log('✅ Event handlers loaded.');
 
-// Log messages to files
-function logToFile(filename, content) {
-    const filePath = path.join(__dirname, filename);
-    fs.appendFile(filePath, content + '\n', (err) => {
-        if (err) console.error(`❌ Error writing to ${filename}:`, err);
-    });
-}
+// Handle Slash Commands
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isCommand()) return;
 
-// Track deleted messages
-client.on('messageDelete', async (message) => {
-    if (!message.author?.bot && message.content) {
-        const logEntry = `[${new Date().toLocaleString()}] ${message.author.tag}: ${message.content}`;
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(`❌ Error executing command ${interaction.commandName}:`, error);
+        await interaction.reply({ content: 'An error occurred while executing this command.', ephemeral: true });
     }
 });
-
-// Track edited messages
-client.on('messageUpdate', async (oldMessage, newMessage) => {
-    if (!oldMessage.author?.bot && oldMessage.content !== newMessage.content) {
-        const logEntry = `[${new Date().toLocaleString()}] ${oldMessage.author.tag}: "${oldMessage.content}" → "${newMessage.content}"`;
-    }
-});
-
-// DisTube Events
-client.distube
-    .on('playSong', (queue, song) => {
-        queue.textChannel.send(`🎶 Now playing: **${song.name}**`);
-    })
-    .on('error', (channel, error) => {
-        console.error(`❌ DisTube Error: ${error}`);
-        channel.send('❌ An error occurred while trying to play music.');
-    });
 
 client.once('ready', () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
