@@ -10,7 +10,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildVoiceStates, // REQUIRED for voice channel access
         GatewayIntentBits.MessageContent,
     ],
 });
@@ -54,6 +54,40 @@ fs.readdirSync(eventsPath).forEach(file => {
 
 console.log('✅ Event handlers loaded.');
 
+// Log messages to files
+function logToFile(filename, content) {
+    const filePath = path.join(__dirname, filename);
+    fs.appendFile(filePath, content + '\n', (err) => {
+        if (err) console.error(`❌ Error writing to ${filename}:`, err);
+    });
+}
+
+// Track deleted messages
+client.on('messageDelete', async (message) => {
+    if (!message.author?.bot && message.content) {
+        const logEntry = `[${new Date().toLocaleString()}] ${message.author.tag}: ${message.content}`;
+        logToFile('deleted_messages.log', logEntry);
+    }
+});
+
+// Track edited messages
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+    if (!oldMessage.author?.bot && oldMessage.content !== newMessage.content) {
+        const logEntry = `[${new Date().toLocaleString()    }] ${oldMessage.author.tag}: "${oldMessage.content}" → "${newMessage.content}"`;
+        logToFile('edited_messages.log', logEntry);
+    }
+});
+
+// DisTube Events
+client.distube
+    .on('playSong', (queue, song) => {
+        queue.textChannel.send(`🎶 Now playing: **${song.name}**`);
+    })
+    .on('error', (channel, error) => {
+        console.error(`❌ DisTube Error: ${error}`);
+        channel.send('❌ An error occurred while trying to play music.');
+    });
+
 // Handle Slash Commands
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
@@ -66,6 +100,16 @@ client.on('interactionCreate', async (interaction) => {
     } catch (error) {
         console.error(`❌ Error executing command ${interaction.commandName}:`, error);
         await interaction.reply({ content: 'An error occurred while executing this command.', ephemeral: true });
+    }
+});
+
+// Echo Command
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isCommand()) return;
+
+    if (interaction.commandName === 'echo') {
+        const message = interaction.options.getString('message');
+        await interaction.reply({ content: message, ephemeral: false }); // Bot sends message in chat
     }
 });
 

@@ -1,4 +1,1 @@
 .env
-deleted.txt
-git rm --cached deleted.txt
-edit.txt
