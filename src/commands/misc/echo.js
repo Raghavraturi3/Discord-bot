@@ -8,25 +8,18 @@ module.exports = {
             option.setName('message')
                 .setDescription('The message to echo')
                 .setRequired(true)),
+
     async execute(interaction) {
-        try {
-            const message = interaction.options.getString('message');
+        // Acknowledge the interaction with an ephemeral reply to confirm the action
+        await interaction.deferReply({ ephemeral: true });
 
-            // Send message to the channel
-            await interaction.channel.send({ content: message });
-
-            // Send ephemeral confirmation message
-            await interaction.reply({ content: 'Message echoed!', ephemeral: true });
-
-        } catch (error) {
-            console.error('Error handling /echo command:', error);
-
-            // Inform the user of the issue without crashing the bot
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'Failed to echo message. Please try again.', ephemeral: true });
-            } else {
-                await interaction.reply({ content: 'Failed to echo message. Please try again.', ephemeral: true });
-            }
-        }
+        // Retrieve the message from the command options
+        const message = interaction.options.getString('message');
+        
+        // Send the message to the channel without revealing who used the command
+        await interaction.channel.send({ content: message });
+        
+        // Edit the ephemeral reply to indicate the action has been completed
+        await interaction.editReply({ content: 'Message echoed in the channel!' });
     },
 };
